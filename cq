@@ -5,7 +5,7 @@ set -euo pipefail
 # A Claude Code wrapper that spawns haiku sub-agents to explore codebases.
 # Designed to be called by a coding agent's Bash tool to offload code understanding.
 
-VERSION="0.1.4"
+VERSION="0.1.5"
 REPO_RAW_URL="https://raw.githubusercontent.com/kywch/cq/main"
 
 # Resolve the real path of this script (follows symlinks)
@@ -297,6 +297,7 @@ stop_progress
 
 # Parse the JSON response
 RESULT=$(echo "$RAW_OUTPUT" | jq -r '.result // empty')
+SESSION_ID=$(echo "$RAW_OUTPUT" | jq -r '.session_id // empty')
 NUM_TURNS=$(echo "$RAW_OUTPUT" | jq -r '.num_turns // 0')
 ELAPSED=$(( SECONDS - START_TIME ))
 
@@ -310,7 +311,7 @@ TOTAL_IN=$(( INPUT_TOKENS + CACHE_CREATION + CACHE_READ ))
 # Check if we hit the turn limit
 if [[ "$NUM_TURNS" -ge "$MAX_TURNS" ]]; then
   if [[ "$QUIET" == false ]]; then
-    printf '\e[33m⚠ hit turn limit (%s/%s) — summarizing...\e[0m\n' "$NUM_TURNS" "$MAX_TURNS" >&2
+    printf '\e[33m⚠ hit turn limit — summarizing...\e[0m\n' >&2
   fi
 
   # Truncated — run a summary pass
@@ -321,26 +322,26 @@ if [[ "$NUM_TURNS" -ge "$MAX_TURNS" ]]; then
 relationships, include a mermaid diagram (under 20 lines)"
   fi
 
-  SUMMARY_PROMPT="The following are partial code exploration findings \
-from an agent that ran out of turns before completing its exploration. \
-Summarize the findings concisely. Only include information that appears \
-in the findings — do NOT add general knowledge or background information.
+  SUMMARY_QUERY="You ran out of turns. Summarize your findings concisely. \
+Only include information from code you actually read — no general knowledge.
 
 Rules:
 - List the specific files examined (with line numbers where available)
 - Keep the summary under 80 lines. Use tables or bullet lists, not prose${DIAGRAM_RULE}
-- At the end, write a follow-up query on a new line in this format:
-NEEDS_MORE_EXPLORATION: <query that includes brief context of what \
+- At the end, add a note that exploration was truncated and a follow-up query:
+*Exploration was truncated due to turn limit. Not all relevant code was examined.*
+CONTINUE_EXPLORATION: <query that includes brief context of what \
 was already found and which files were examined, so the next run \
 can skip known ground and focus on unanswered parts>"
 
   start_progress "summarizing"
-  SUMMARY_OUTPUT=$(cd "$TARGET_DIR" && echo "$RESULT" | claude -p \
+  SUMMARY_OUTPUT=$(cd "$TARGET_DIR" && claude -p \
+    --resume "$SESSION_ID" \
     --model "$MODEL" \
-    --tools "" \
-    --system-prompt "$SUMMARY_PROMPT" \
-    --max-turns 1 \
+    --disallowedTools "Read Glob Grep Task Bash Edit Write" \
+    --max-turns 2 \
     --output-format json \
+    "$SUMMARY_QUERY" \
     2>/dev/null) || {
       stop_progress
       # If summary fails, just output the raw result

@@ -1,13 +1,13 @@
 # cq — Code Query CLI
 
-A lightweight Claude Code wrapper that spawns haiku sub-agents to explore codebases. Designed to be called by a coding agent's Bash tool so it can offload code understanding without spending its own context.
+A lightweight code-exploration CLI that answers questions about any codebase. Powered by Claude Code under the hood, it works from **any workflow** — a coding agent's shell tool, your terminal, CI scripts, or anything that can call a command and read stdout.
 
 ```
-Main coding agent (Opus/Sonnet)
+Any coding agent / terminal
   → bash: cq "how does auth work?"
-    → claude -p (Haiku) explores the codebase
+    → Claude (Haiku) explores the codebase
     → returns concise summary
-  → main agent uses the answer, context stays clean
+  → caller uses the answer, context stays clean
 ```
 
 ## Install
@@ -60,8 +60,8 @@ echo "find all API endpoints" | cq
 | Flag | Default | Description |
 |------|---------|-------------|
 | `-d <dir>` | `.` | Target project directory |
-| `-m <model>` | `haiku` | Model to use |
-| `-t <turns>` | `30` | Max agentic turns |
+| `-m <model>` | `haiku` | Model: `haiku`, `sonnet`, `opus` |
+| `-t <turns>` | `30` | Max agentic turns (increase for deeper exploration) |
 | `--no-diagram` | off | Disable mermaid diagrams in output |
 | `--json` | off | Full JSON output with metadata |
 | `-s <prompt>` | built-in | Override the system prompt |
@@ -76,9 +76,11 @@ echo "find all API endpoints" | cq
 3. If the turn limit is hit before the question is fully answered, a second pass automatically summarizes the findings and suggests a follow-up query (`NEEDS_MORE_EXPLORATION: ...`)
 4. The result is printed to stdout — ready for a calling agent to consume
 
-## Use from another Claude Code session
+## Use from any coding agent
 
-Add to your project's `CLAUDE.md`:
+`cq` prints plain text to stdout, so it works with any tool that can run a shell command: Claude Code, Cursor, Windsurf, Copilot, Aider, Codex CLI, and others.
+
+Add to your project's agent instructions (e.g. `CLAUDE.md`, `.cursorrules`, or equivalent):
 
 ```markdown
 ## Code exploration
@@ -93,14 +95,15 @@ cq is stateless — each invocation starts fresh. The follow-up query already in
 context about what was found, so the next run can skip known ground.
 ```
 
-Then the coding agent will naturally call `cq` via its Bash tool whenever it needs to understand code.
+The coding agent will naturally call `cq` via its shell tool whenever it needs to understand code.
 
 ## Why
 
-- **Save context**: The main coding agent stays focused on writing code, not reading files
+- **Works everywhere**: Any agent or terminal that can run a command can use `cq`
+- **Save context**: Your coding agent stays focused on writing code, not reading files
 - **Save cost**: Haiku is cheap; exploration is disposable
 - **Better answers**: A dedicated exploration agent with the right prompt does a thorough job
-- **Subscription-friendly**: Uses `claude -p` which runs on your existing subscription
+- **Subscription-friendly**: Runs on your existing Claude subscription via `claude -p`
 
 ## License
 
