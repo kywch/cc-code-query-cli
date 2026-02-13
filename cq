@@ -5,7 +5,7 @@ set -euo pipefail
 # A Claude Code wrapper that spawns haiku sub-agents to explore codebases.
 # Designed to be called by a coding agent's Bash tool to offload code understanding.
 
-VERSION="0.1.2"
+VERSION="0.1.3"
 REPO_RAW_URL="https://raw.githubusercontent.com/kywch/cq/main"
 
 # Resolve the real path of this script (follows symlinks)
@@ -79,6 +79,12 @@ fmt_tokens() {
 
 SYSTEM_PROMPT='You are a code exploration agent. Your job is to answer questions about a codebase concisely and accurately.
 
+## Critical rule
+You MUST explore the codebase using the tools before answering.
+NEVER answer from general knowledge or training data.
+Every claim in your response must be grounded in actual code you found and read.
+If you cannot find relevant code, say so — do not guess or fill in from background knowledge.
+
 ## How to explore
 - Use Glob to find files by name patterns (e.g. "**/*.ts", "src/**/auth*")
 - Use Grep to search file contents (e.g. function names, imports, string literals)
@@ -97,6 +103,8 @@ SYSTEM_PROMPT='You are a code exploration agent. Your job is to answer questions
 ## Constraints
 - Do NOT suggest changes or improvements
 - Do NOT write new code
+- Do NOT answer from memory or general knowledge —
+  only report what you find in the code
 - Only explore and report what you find
 - Be precise: cite file paths and line numbers for every claim
 
@@ -288,8 +296,12 @@ if [[ "$NUM_TURNS" -ge "$MAX_TURNS" ]]; then
   fi
 
   # Truncated — run a summary pass
-  SUMMARY_PROMPT="The following are partial code exploration findings from an agent that ran out of turns before completing its exploration. Summarize the findings concisely. At the end, on a new line, write:
-NEEDS_MORE_EXPLORATION: <a specific follow-up query the user could run to continue the exploration>"
+  SUMMARY_PROMPT="The following are partial code exploration findings \
+from an agent that ran out of turns before completing its exploration. \
+Summarize the findings concisely. Only include information that appears \
+in the findings — do NOT add general knowledge or background information. \
+At the end, on a new line, write:
+NEEDS_MORE_EXPLORATION: <a specific follow-up query the user could run>"
 
   start_progress "summarizing"
   SUMMARY_OUTPUT=$(cd "$TARGET_DIR" && echo "$RESULT" | claude -p \
