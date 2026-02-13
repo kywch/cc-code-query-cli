@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_RAW_URL="https://raw.githubusercontent.com/kywch/cc-code-query-cli/main"
+REPO_RAW_URL="https://raw.githubusercontent.com/kywch/cq/main"
 INSTALL_DIR="${HOME}/.local/bin"
 
 # Check dependencies

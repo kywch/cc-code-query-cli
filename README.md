@@ -13,13 +13,13 @@ Main coding agent (Opus/Sonnet)
 ## Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kywch/cc-code-query-cli/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/kywch/cq/main/install.sh | bash
 ```
 
 Or manually:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kywch/cc-code-query-cli/main/cq -o ~/.local/bin/cq && chmod +x ~/.local/bin/cq
+curl -fsSL https://raw.githubusercontent.com/kywch/cq/main/cq -o ~/.local/bin/cq && chmod +x ~/.local/bin/cq
 ```
 
 To update:
