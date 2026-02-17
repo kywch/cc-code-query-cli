@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="cq_logo.png" alt="CQ Logo by Sun-U Choe" width="200">
+</div>
+
 # cq — Code Query CLI
 
 A lightweight code-exploration CLI that answers questions about any codebase. Powered by Claude Code under the hood, it works from **any workflow** — a coding agent's shell tool, your terminal, CI scripts, or anything that can call a command and read stdout.
@@ -149,6 +153,10 @@ The coding agent will naturally call `cq` via its shell tool whenever it needs t
 - **Save cost**: Haiku is cheap; exploration is disposable
 - **Better answers**: A dedicated exploration agent with the right prompt does a thorough job
 - **Subscription-friendly**: Runs on your existing Claude subscription via `claude -p`
+
+## Credits
+
+Logo by Sun-U Choe. The logo is &copy; Sun-U Choe and is not covered by the MIT license.
 
 ## License
 
